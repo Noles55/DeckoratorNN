@@ -1,15 +1,23 @@
 import tensorflow as tf
 import random
-
+from Deck import Deck
+import JSONService
 
 def build_and_train_model(size):
     model = build_model()
     input = get_training_input(size)
     model.fit(input[0], input[1], epochs=10)
-    print(model.predict([create_model_input([24, 1, 6, 67, 99, 84, 53, 17, 63, 95]),
-                         create_model_input([4, 78, 5, 10, 11, 43, 64, 12, 82, 96]),
-                         create_model_input([24, 67, 11, 83, 53, 99, 16, 61, 7, 48])]))
 
+    # print(model.predict([create_model_input([24, 1, 6, 67, 99, 84, 53, 17, 63, 95]),
+    #                      create_model_input([4, 78, 5, 10, 11, 43, 64, 12, 82, 96]),
+    #                      create_model_input([24, 67, 11, 83, 53, 99, 16, 61, 7, 48]),
+    #                      create_model_input([25, 13, 6, 14, 55, 84, 98, 65, 21, 1])]))
+
+    deck = JSONService.read_json_deck()
+    print(deck.rating)
+    rating = model.predict([create_model_input(deck.cards)])
+    deck.rating = rating
+    print(deck.rating)
 
 def build_model():
     model = tf.keras.Sequential([
@@ -48,7 +56,7 @@ def generate_decks(num_decks, sample_range):
         training_deck = random.sample(sample_range, 10)
         rating = min(rating + get_training_rate_offset(training_deck, hot), 10)
         rating = max(rating - get_training_rate_offset(training_deck, cold), 1)
-        training_set.append(RatedDeck(training_deck, rating))
+        training_set.append(Deck(training_deck, rating))
 
     return training_set
 
@@ -70,7 +78,4 @@ def get_training_rate_offset(training_deck, pairs):
     return offset
 
 
-class RatedDeck:
-    def __init__(self, cards, rating):
-        self.cards = cards
-        self.rating = rating
+
