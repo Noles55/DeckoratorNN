@@ -1,24 +1,27 @@
+import os
 import random
-from Deck import Deck
-import JSONService
-from ModelUtils import *
-from Model import DeckoratorModel
+from src.Deck import Deck
+from src import json_service
+from src.Model import DeckoratorModel
 
 
 def build_and_train_model(num_input_nodes, num_training_decks):
     model = DeckoratorModel(num_input_nodes)
-    model.train(generate_decks(num_training_decks, list(range(99))))
+    decks = generate_decks(num_training_decks, list(range(100)))
+    model.train(decks)
+    return model
 
-    # print(model.predict([create_model_input([24, 1, 6, 67, 99, 84, 53, 17, 63, 95]),
-    #                      create_model_input([4, 78, 5, 10, 11, 43, 64, 12, 82, 96]),
-    #                      create_model_input([24, 67, 11, 83, 53, 99, 16, 61, 7, 48]),
-    #                      create_model_input([25, 13, 6, 14, 55, 84, 98, 65, 21, 1])]))
 
-    deck = JSONService.read_json_deck()
-    print(deck.rating)
+def rate_test_decks(model):
+    for filename in os.listdir("TestDecks"):
+        read_and_rate_json_deck("TestDecks\\" + filename, model)
+
+
+def read_and_rate_json_deck(filename, model):
+    deck = json_service.read_json_deck(filename)
     rating = model.predict(deck)
     deck.rating = rating
-    print(deck.rating)
+    print(str(deck.rating) + " " + filename)
 
 
 def generate_decks(num_decks, sample_range):

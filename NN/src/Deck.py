@@ -1,5 +1,5 @@
 class Deck(object):
-    def __init__(self, cards, rating):
+    def __init__(self, cards, rating=5):
         self.cards = cards
         self.rating = rating
 
