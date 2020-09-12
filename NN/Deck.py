@@ -4,8 +4,8 @@ class Deck(object):
         self.rating = rating
 
     @classmethod
-    def from_dict(cls, peram_dict):
-        cards = peram_dict["cards"]
-        rating = peram_dict["rating"]
+    def from_dict(cls, param_dict):
+        cards = param_dict["cards"]
+        rating = param_dict["rating"]
 
-        return cls(cards,rating)
+        return cls(cards, rating)

@@ -3,10 +3,11 @@ import random
 from Deck import Deck
 import JSONService
 
+
 def build_and_train_model(size):
     model = build_model()
-    input = get_training_input(size)
-    model.fit(input[0], input[1], epochs=10)
+    training_input = get_training_input(size)
+    model.fit(training_input[0], training_input[1], epochs=10)
 
     # print(model.predict([create_model_input([24, 1, 6, 67, 99, 84, 53, 17, 63, 95]),
     #                      create_model_input([4, 78, 5, 10, 11, 43, 64, 12, 82, 96]),
@@ -18,6 +19,7 @@ def build_and_train_model(size):
     rating = model.predict([create_model_input(deck.cards)])
     deck.rating = rating
     print(deck.rating)
+
 
 def build_model():
     model = tf.keras.Sequential([
@@ -76,6 +78,3 @@ def get_training_rate_offset(training_deck, pairs):
             offset = offset + 2
 
     return offset
-
-
-
