@@ -5,7 +5,7 @@ from src.Deck import Deck
 from src.Model import DeckoratorModel
 
 
-class ModelTests(unittest.TestCase):
+class SmallModelTests(unittest.TestCase):
     def test_cold3_less_than_cold2(self):
         cold3 = Deck([4, 94, 19, 64, 65, 52, 43, 78, 37, 20])
         cold2 = Deck([4, 94, 17, 64, 65, 52, 43, 78, 23, 20])
@@ -43,7 +43,7 @@ class ModelTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(ModelTests, cls).setUpClass()
+        super(SmallModelTests, cls).setUpClass()
         cls.model = DeckoratorModel(100)
         cls.model.train(generate_decks(10000, list(range(100))))
 
