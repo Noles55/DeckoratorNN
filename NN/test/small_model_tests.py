@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from src.Deck import Deck
-from src.Model import DeckoratorModel
+from Deck import Deck
+from Model import DeckoratorModel
 
 
 class SmallModelTests(unittest.TestCase):

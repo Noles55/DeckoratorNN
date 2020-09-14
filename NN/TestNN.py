@@ -18,7 +18,7 @@ def rate_test_decks(model):
 
 
 def read_and_rate_json_deck(filename, model):
-    deck = json_service.read_json_deck(filename)
+    deck = json_service.read_json_deck_from_file(filename)
     rating = model.predict(deck)
     deck.rating = rating
     print(str(deck.rating) + " " + filename)

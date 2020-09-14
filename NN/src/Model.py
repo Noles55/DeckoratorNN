@@ -1,5 +1,5 @@
 import tensorflow as tf
-from src.model_utils import *
+from model_utils import *
 
 
 class DeckoratorModel(object):
@@ -20,7 +20,7 @@ class DeckoratorModel(object):
 def build_model(num_input_nodes):
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(num_input_nodes, activation='relu', input_shape=(num_input_nodes,)),
-        # tf.keras.layers.Dense(num_input_nodes, activation="relu"),
+        # tf.keras.layers.Dense(10, activation="relu"),
         tf.keras.layers.Dense(1)
     ])
 
