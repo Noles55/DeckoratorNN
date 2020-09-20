@@ -1,5 +1,3 @@
-# EdhDeckRater
+# EdhDeckRaterNN
 
-Project to rate EDH decks using TensorFlow and Keras
-
-Contributors - Nolan Byrne, Calvin Jacobsen, Connor Dinzl
+Pythjon project to rate EDH decks using TensorFlow and Keras
