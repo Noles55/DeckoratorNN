@@ -1,0 +1,50 @@
+import tensorflow as tf
+import csv
+import numpy as np
+
+
+def embed(totalCards, embeddingDimensions, deckSize, embedInput):
+    embeddingLayer = tf.keras.layers.Embedding(totalCards, embeddingDimensions, input_length=deckSize, trainable=False)
+    return embeddingLayer(tf.convert_to_tensor(embedInput))
+
+def prepare_input(fileName):
+    concatData = []
+    ratings = []
+    embedInput = []
+
+    with open(fileName) as trainingFile:
+        reader = csv.reader(trainingFile, delimiter=',')
+        first_line = True
+        curr_deck = None
+        curr_deck_index = 0
+        for row in reader:
+            if first_line:
+                first_line = False
+                continue
+
+            index, deck_id, rating, is_commander, count = row
+
+            if curr_deck is None:
+                curr_deck = deck_id
+                embedInput.append([])
+                concatData.append([])
+
+            if curr_deck != deck_id:
+                embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index])
+                ratings.append(int(rating))
+                embedInput.append([])
+                concatData.append([])
+                curr_deck = deck_id
+                curr_deck_index += 1
+
+            # +1 accounting for padding, this should handled in data wrangler, not model
+            embedInput[curr_deck_index].append(int(index) + 1)
+            concatData[curr_deck_index].append([int(is_commander == "true"), int(count)])
+        embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index])
+    return [embedInput, concatData, ratings]
+
+
+def padDeckVector(deckVector):
+    padAmount = 100 - len(deckVector)
+    return tf.convert_to_tensor(np.pad(deckVector, (0, padAmount)))
+
