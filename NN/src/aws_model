@@ -1,13 +1,17 @@
 import tensorflow as tf
 import csv
 import numpy as np
+import pydot
+import graphviz
 
 
 def embed(totalCards, embeddingDimensions, deckSize, embedInput):
-    embeddingLayer = tf.keras.layers.Embedding(totalCards, embeddingDimensions, input_length=deckSize, trainable=False)
+    embeddingLayer = tf.keras.layers.Embedding(totalCards, embeddingDimensions, input_length=deckSize, trainable=False,
+                                               mask_zero=True)
     return embeddingLayer(tf.convert_to_tensor(embedInput))
 
-def prepare_input(fileName):
+
+def prepare_input(fileName, deckSize):
     concatData = []
     ratings = []
     embedInput = []
@@ -26,11 +30,13 @@ def prepare_input(fileName):
 
             if curr_deck is None:
                 curr_deck = deck_id
+                ratings.append(int(rating))
                 embedInput.append([])
                 concatData.append([])
 
             if curr_deck != deck_id:
-                embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index])
+                embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index], deckSize)
+                concatData[curr_deck_index] = padConcatVector(concatData[curr_deck_index], deckSize)
                 ratings.append(int(rating))
                 embedInput.append([])
                 concatData.append([])
@@ -40,11 +46,52 @@ def prepare_input(fileName):
             # +1 accounting for padding, this should handled in data wrangler, not model
             embedInput[curr_deck_index].append(int(index) + 1)
             concatData[curr_deck_index].append([int(is_commander == "true"), int(count)])
-        embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index])
-    return [embedInput, concatData, ratings]
+
+        embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index], deckSize)
+        concatData[curr_deck_index] = padConcatVector(concatData[curr_deck_index], deckSize)
+
+    return [np.array(embedInput), np.array(concatData), np.array(ratings)]
 
 
-def padDeckVector(deckVector):
-    padAmount = 100 - len(deckVector)
-    return tf.convert_to_tensor(np.pad(deckVector, (0, padAmount)))
+def padDeckVector(deckVector, deckSize):
+    padAmount = deckSize - len(deckVector)
+    return np.array(np.pad(deckVector, (0, padAmount)))
 
+
+def padConcatVector(concatVector, deckSize):
+    padAmount = deckSize - len(concatVector)
+    for i in range(padAmount):
+        concatVector.append([0, 0])
+
+    return np.array(concatVector)
+
+
+def buildModel(inputFile, totalCards, embeddingDimensions, deckSize):
+    inputs = prepare_input(inputFile, deckSize)
+    embedded = embed(totalCards, embeddingDimensions, deckSize, inputs[0])
+    concatData = tf.dtypes.cast(tf.convert_to_tensor(inputs[1]), tf.float32)
+    concatLayer = tf.keras.layers.Concatenate(axis=2)([embedded, concatData])
+    return concatLayer
+
+
+def buildModel2(totalCards, embeddingDimensions, deckSize):
+    deck_input = tf.keras.layers.Input(deckSize)
+    vector_input = tf.keras.layers.Input((deckSize, 2))
+    embeddingLayer = tf.keras.layers.Embedding(totalCards,
+                                               embeddingDimensions,
+                                               input_length=deckSize,
+                                               mask_zero=True)(deck_input)
+    concatLayer = tf.keras.layers.Concatenate(axis=2)([embeddingLayer, vector_input])
+    x = tf.keras.layers.Dense(deckSize, activation='relu')(concatLayer)
+    output = tf.keras.layers.Dense(1)(x)
+
+    model = tf.keras.Model(inputs=[deck_input, vector_input], outputs=output, name="deckorator_model")
+
+    print(model.summary())
+    tf.keras.utils.plot_model(model, "model_graph.png")
+    tf.keras.utils.plot_model(model, "model_graph_shape_info.png", show_shapes=True)
+    return model
+
+
+def compileModel(model):
+    model.compile(loss='mse', optimizer=tf.keras.optimizers.RMSprop(.001), metrics=['mae', 'mse'])
