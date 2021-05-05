@@ -66,15 +66,15 @@ def padConcatVector(concatVector, deckSize):
     return np.array(concatVector)
 
 
-def buildModel(inputFile, totalCards, embeddingDimensions, deckSize):
-    inputs = prepare_input(inputFile, deckSize)
-    embedded = embed(totalCards, embeddingDimensions, deckSize, inputs[0])
-    concatData = tf.dtypes.cast(tf.convert_to_tensor(inputs[1]), tf.float32)
-    concatLayer = tf.keras.layers.Concatenate(axis=2)([embedded, concatData])
-    return concatLayer
+# def buildModel(inputFile, totalCards, embeddingDimensions, deckSize):
+#     inputs = prepare_input(inputFile, deckSize)
+#     embedded = embed(totalCards, embeddingDimensions, deckSize, inputs[0])
+#     concatData = tf.dtypes.cast(tf.convert_to_tensor(inputs[1]), tf.float32)
+#     concatLayer = tf.keras.layers.Concatenate(axis=2)([embedded, concatData])
+#     return concatLayer
 
 
-def buildModel2(totalCards, embeddingDimensions, deckSize):
+def buildModel(totalCards, embeddingDimensions, deckSize):
     deck_input = tf.keras.layers.Input(deckSize)
     vector_input = tf.keras.layers.Input((deckSize, 2))
     embeddingLayer = tf.keras.layers.Embedding(totalCards,
@@ -82,8 +82,9 @@ def buildModel2(totalCards, embeddingDimensions, deckSize):
                                                input_length=deckSize,
                                                mask_zero=True)(deck_input)
     concatLayer = tf.keras.layers.Concatenate(axis=2)([embeddingLayer, vector_input])
-    x = tf.keras.layers.Dense(deckSize, activation='relu')(concatLayer)
-    output = tf.keras.layers.Dense(1)(x)
+    x = tf.keras.layers.Dense(1, activation='relu')(concatLayer)
+    x = tf.keras.layers.Flatten(data_format=None)(x)
+    output = tf.keras.layers.Dense(1, activation='relu')(x)
 
     model = tf.keras.Model(inputs=[deck_input, vector_input], outputs=output, name="deckorator_model")
 
@@ -95,3 +96,8 @@ def buildModel2(totalCards, embeddingDimensions, deckSize):
 
 def compileModel(model):
     model.compile(loss='mse', optimizer=tf.keras.optimizers.RMSprop(.001), metrics=['mae', 'mse'])
+
+
+def trainModel(model, trainingData, deckSize, epochs):
+    inputData = prepare_input(trainingData, deckSize)
+    model.fit([inputData[0], inputData[1]], inputData[2], epochs=epochs)
