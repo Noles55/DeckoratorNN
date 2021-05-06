@@ -4,6 +4,12 @@ import numpy as np
 import pydot
 import graphviz
 
+tdf = '../TrainingFiles/SampleTraining.csv'
+ds = 100
+e = 500
+ed = 4
+tc = 22912
+
 
 def embed(totalCards, embeddingDimensions, deckSize, embedInput):
     embeddingLayer = tf.keras.layers.Embedding(totalCards, embeddingDimensions, input_length=deckSize, trainable=False,
@@ -11,7 +17,7 @@ def embed(totalCards, embeddingDimensions, deckSize, embedInput):
     return embeddingLayer(tf.convert_to_tensor(embedInput))
 
 
-def prepare_input(fileName, deckSize):
+def prepare_input(fileName, deckSize, maxDecks=None):
     concatData = []
     ratings = []
     embedInput = []
@@ -35,6 +41,8 @@ def prepare_input(fileName, deckSize):
                 concatData.append([])
 
             if curr_deck != deck_id:
+                if int(deck_id) == maxDecks:
+                    break
                 embedInput[curr_deck_index] = padDeckVector(embedInput[curr_deck_index], deckSize)
                 concatData[curr_deck_index] = padConcatVector(concatData[curr_deck_index], deckSize)
                 ratings.append(int(rating))
@@ -98,6 +106,20 @@ def compileModel(model):
     model.compile(loss='mse', optimizer=tf.keras.optimizers.RMSprop(.001), metrics=['mae', 'mse'])
 
 
-def trainModel(model, trainingData, deckSize, epochs):
-    inputData = prepare_input(trainingData, deckSize)
+def trainModel(model, trainingData, deckSize, epochs, maxDecks):
+    inputData = prepare_input(trainingData, deckSize, maxDecks)
+    print("Training with first " + str(len(inputData[0])) + " decks")
     model.fit([inputData[0], inputData[1]], inputData[2], epochs=epochs)
+
+
+def fullModelSetup(maxDecks):
+    model = buildModel(tc, ed, ds)
+    compileModel(model)
+    trainModel(model, tdf, ds, e, maxDecks)
+    return model
+
+
+def predictHelper(model, inputData, deckIndex):
+    deckInput = np.array([inputData[0][deckIndex]])
+    concatInput = np.array([inputData[1][deckIndex]])
+    return model.predict((deckInput, concatInput))
