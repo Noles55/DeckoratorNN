@@ -4,11 +4,11 @@ import numpy as np
 import pydot
 import graphviz
 
-tdf = '../TrainingFiles/SampleTraining.csv'
+tdf = '../TrainingFiles/SampleTraining2.csv'
 ds = 100
 e = 500
-ed = 4
-tc = 22912
+ed = 2
+tc = 23056
 
 
 def embed(totalCards, embeddingDimensions, deckSize, embedInput):
@@ -72,14 +72,6 @@ def padConcatVector(concatVector, deckSize):
         concatVector.append([0, 0])
 
     return np.array(concatVector)
-
-
-# def buildModel(inputFile, totalCards, embeddingDimensions, deckSize):
-#     inputs = prepare_input(inputFile, deckSize)
-#     embedded = embed(totalCards, embeddingDimensions, deckSize, inputs[0])
-#     concatData = tf.dtypes.cast(tf.convert_to_tensor(inputs[1]), tf.float32)
-#     concatLayer = tf.keras.layers.Concatenate(axis=2)([embedded, concatData])
-#     return concatLayer
 
 
 def buildModel(totalCards, embeddingDimensions, deckSize):
